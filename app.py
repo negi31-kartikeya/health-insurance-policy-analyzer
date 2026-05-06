@@ -285,7 +285,7 @@ with st.sidebar:
         "Extracts 12 key parameters from any Indian health insurance policy document "
         "and lets you chat with an AI underwriter about the specifics of your policy."
     )
-    st.markdown("**Model:** Claude Sonnet 4.6")
+    st.markdown("**Model:** Claude-sonnet-4-6")
     st.markdown("**Scope:** Indian health insurance policies only")
 
 # --- Step 1: Upload ---
