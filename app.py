@@ -48,9 +48,10 @@ a) is_indian_health_policy — Is this a health insurance policy document (or se
    Positive signals: IRDAI / IRDA references; Indian insurer names (HDFC Ergo, Star Health, Niva Bupa, ICICI Lombard, Bajaj Allianz, Care Health, Tata AIG, Aditya Birla, Manipal Cigna, Reliance General, New India Assurance, National Insurance, Oriental Insurance, United India, etc.); Indian currency (₹ / INR / Rupees); Indian addresses (PIN codes, Indian states); Indian regulatory references; UIN (Unique Identification Number).
    Negative signals: USD / $ / £ / € as primary currency; non-Indian insurers (Aetna, Cigna US, BUPA UK, AXA France, etc.); non-Indian regulators (NAIC, PRA, etc.); non-health document types (life, motor, travel, property) — return false for non-health even if Indian.
 
-b) has_terms_and_conditions — Do the documents (individually or together) contain the terms & conditions of the insurance contract?
-   Positive signals: sections titled Definitions, Coverage / Benefits, Exclusions, Waiting Periods, Claim Procedure, General Conditions, Cancellation, Renewal.
-   Negative signals: the documents are only a Policy Schedule / Certificate of Insurance / Premium Receipt / KYC form with no actual clauses — return false.
+b) has_terms_and_conditions — Does AT LEAST ONE of the uploaded documents contain terms & conditions or detailed policy information?
+   Positive signals: sections titled Definitions, Coverage / Benefits, Exclusions, Waiting Periods, Claim Procedure, General Conditions, Cancellation, Renewal; detailed policy wordings; prospectus with coverage details and exclusions.
+   IMPORTANT: If two documents are uploaded and one is a Policy Schedule / Certificate of Insurance while the other contains detailed policy wordings, terms and conditions, prospectus with benefits and exclusions, or similar substantive policy content — return TRUE. A Policy Schedule paired with a terms & conditions document is a VALID and COMPLETE combination.
+   Return false ONLY if NONE of the uploaded documents contain any substantive policy terms, conditions, benefits, or exclusions (e.g., all uploaded documents are only premium receipts, KYC forms, or cover letters with no policy clauses at all).
 
 STEP 2 — If BOTH checks pass, extract these 12 parameters from the documents (combining information from all uploaded documents):
 
@@ -443,7 +444,11 @@ if analyse_clicked:
             st.error("Incorrect document(s) uploaded, please upload the correct document(s)")
             st.stop()
         if not result.get("has_terms_and_conditions"):
-            st.error("Incomplete document(s) uploaded without the terms and conditions, please upload the correct document(s)")
+            st.error(
+                "The uploaded document(s) do not appear to contain policy terms, conditions, benefits, or exclusions. "
+                "Please upload the policy wordings or prospectus. You can also upload a policy schedule as Document 1 "
+                "and the detailed terms & conditions as Document 2."
+            )
             st.stop()
 
         params = result.get("parameters") or {}
