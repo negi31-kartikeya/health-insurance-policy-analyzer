@@ -179,7 +179,7 @@ def build_document_content(uploaded_file) -> list | None:
 
 
 def analyze_policy(client: anthropic.Anthropic, doc_content: list) -> dict:
-    """Single call that validates + extracts parameters. Uses JSON prefill for reliability."""
+    """Single call that validates + extracts parameters."""
     user_content = list(doc_content) + [{
         "type": "text",
         "text": "Please validate this document and extract the 12 parameters as instructed. Return only the JSON object."
@@ -191,17 +191,16 @@ def analyze_policy(client: anthropic.Anthropic, doc_content: list) -> dict:
         system=ANALYSIS_SYSTEM_PROMPT,
         messages=[
             {"role": "user", "content": user_content},
-            {"role": "assistant", "content": "{"},  # JSON prefill
         ],
     )
 
     raw = response.content[0].text.strip()
-    # Reconstruct: prefill "{" + model continuation
-    json_text = "{" + raw
-    # Safety: strip any trailing markdown fences if model added them
-    if json_text.endswith("```"):
-        json_text = json_text.rsplit("```", 1)[0].strip()
-    return json.loads(json_text)
+    # Strip markdown fences if model wraps in ```json ... ```
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
+    if raw.endswith("```"):
+        raw = raw.rsplit("```", 1)[0].strip()
+    return json.loads(raw)
 
 
 def chat_with_policy(
